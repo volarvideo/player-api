@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="js/Volarvideo.js"></script>
+<script type="text/javascript" src="js/example.js"></script>
+<style type="text/css">
+	#debug-progress-container {
+		width:640px;
+		background: #ccc;
+		height: 20px;
+	}
+	#debug-progress {
+		width:0;
+		background: #000;
+		height:20px;
+	}
+	#controls.playing a.play, #controls.paused a.pause {
+		display:none;
+	}
+</style>
+</head>
+<body onload="initMC();">
+<!-- iframe as given by volar system, with addition of 'id' for easier selection in code -->
+<iframe src="http://vcloud.volarvideo.com/volar/broadcast/embed/3062-player-api-demonstration?w=640" frameborder="0" width="640" height="360" id="frame" scrolling="no"></iframe>
+<div id="controls"> <!-- control bar.  as player changes state, this bar gets a class that hides/shows the play and pause buttons, thanks to the onMediaPlayerStateChange (see the binding code in initMC in js/example.js) -->
+	<a href="#" class="play" onclick="play(); return false">Play</a>
+	<a href="#" class="pause" onclick="pause(); return false">Pause</a> |
+	<a href="#" onclick="seek(0); return false">Seek to beginning</a> |
+	<a href="#" onclick="seek(180); return false">Seek to 180 seconds</a> |
+	<a href="#" onclick="seek(540); return false">Seek to 540 seconds</a>
+</div>
+<div id="debug-progress-container">	<!-- container for progress bar.  see <style> rules above -->
+	<div id="debug-progress"></div>	<!-- element that progresses across container, acts as progress indicator -->
+</div>
+<div id="debug-info"></div>	<!-- contains text that gives state & duration information about currently playing video -->
+</body>
+</html>

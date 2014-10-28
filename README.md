@@ -56,6 +56,11 @@ Methods
 | `pause()`    | *none*      | Pauses the embedded video (if it is playing) |
 | `seek()`     | position  | Immediately seek to the `position` (in seconds, floats are accepted) of the video |
 | `duration()` | callback  | Query the iframe for the duration of the video.  `callback` should accept 1 argument - an object that looks like { 'state' : 'player state', 'position': position_in_playback_in_seconds, 'duration': length_of_video_in_seconds, 'volume' : current_volume_of_video }.  Since this same object is passed to all callbacks, this is effectively a convenience function that may be renamed later on. |
+| `bitrate()`  | callback | Query the iframe for the bitrate of the currently playing rendition.  `callback` should accept 1 argument - an object that looks similar to the `duration()` callback's argument, with the exception of an `args` array that contains the relevant information. |
+| `videoHeight()` | callback | Query the iframe for the height of the currently playing rendition.  `callback` should accept 1 argument - an object that looks similar to the `duration()` callback's argument, with the exception of an `args` array that contains the relevant information. |
+| `availableHeights()` | callback | Query the iframe for all available heights of the currently playing video.  `callback` should accept 1 argument - an object that looks similar to the `duration()` callback's argument, with the exception of an `args` array that contains the relevant information. |
+| `statsForNerds()` | callback | Query the iframe for nerdy things about the currently playing video.  `callback` should accept 1 argument - an object that looks similar to the `duration()` callback's argument, with the exception of an `args` array that contains the relevant information. |
+| `playerVersion()` | callback | Query the iframe for the version of the player in the frame.  `callback` should accept 1 argument - an object that looks similar to the `duration()` callback's argument, with the exception of an `args` array that contains the relevant information. |
 | `on()`       | eventName, callback | Binds an event to the iframe so that when it receives a message with type `eventName`, it will call the `callback` function.  Only accepts function pointers as a callback.  Function names as strings are not accepted. |
 | `one()`      | eventName, callback | Like `on()`, but the `callback` only executes once.  After that, the function should be unbound. |
 | `off()`      | eventName, callback | Unbinds an event callback from the iframe.  The same function pointer that was passed in the `on()` function must be used for this to function properly |
@@ -80,3 +85,4 @@ The following is a list of registered events in the Iframe bridge controller tha
 | `onMutedChange`            | User mutes or unmutes the player |
 | `onPublishMetadata`        | Metadata passes from video.  Not fully supported on archived video at this time, but is being planned |
 | `onVolumeChange`           | User changes volume of player |
+| `fullscreenChange`         | User changes the full-screen state of the player |

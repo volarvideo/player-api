@@ -60,6 +60,26 @@ class @Volarvideo
 		@one 'duration', callback
 		@send 'duration'
 
+	bitrate: (callback) ->
+		@one 'bitrate', callback
+		@send 'bitrate'
+
+	videoHeight: (callback) ->
+		@one 'videoHeight', callback
+		@send 'videoHeight'
+
+	availableHeights: (callback) ->
+		@one 'availableHeights', callback
+		@send 'availableHeights'
+
+	statsForNerds: (callback) ->
+		@one 'statsForNerds', callback
+		@send 'statsForNerds'
+
+	playerVersion: (callback) ->
+		@one 'playerVersion', callback
+		@send 'playerVersion'
+
 	enableLogging: ->
 		@logging = true
 		@send 'enableLogging'
@@ -81,74 +101,85 @@ class @Volarvideo
 				me.doconnect iframe
 				retries++
 			, @retryInterval)
-
+		return
 	doconnect: (iframe) ->
 		@iframe = iframe
 		me = @
 		if window.MessageChannel
 			@_mcSupport = true
-			@channel = new MessageChannel
-			@channel.port1.onmessage = (e) ->
-				data = me.munchData e.data
-				me.log 'data recieved: ', data
-				if data.type
-					switch data.type 
-						when 'test'
-							if data.args
-								me.log 'test returned', data.args
-							else
-								me.log 'test returned'
-						when 'connected'
-							if not me.connected
-								me.connected = true
-								me.log("Connection to volarvideo object made")
-								if me._queue.length > 0	#send messages waiting to go
-									for i in me._queue
-										me.send.apply(me, i)
-					if me.events[data.type]
-						remove = []
-						for i, f in me.events[data.type]
-							if me.events[data.type][f]['life'] isnt 0
-								i['function'].apply(undefined, [data])
-							if me.events[data.type][f]['life'] > 0
-								me.events[data.type][f]['life']--
-							if me.events[data.type][f]['life'] is 0
-								remove.push(i['function'])
-						for i in remove
-							me.off data.type, i
-				return
-			@log 'sending initial message'
-			@iframe.contentWindow.postMessage(JSON.stringify({'type' : 'connect'}), @iframe.src, [@channel.port2])
+			try
+
+				@channel = new MessageChannel()
+				@channel.port1.onmessage = (e) ->
+					data = me.munchData e.data
+					me.log 'data recieved: ', data
+					if data.type
+						switch data.type 
+							when 'test'
+								if data.args
+									me.log 'test returned', data.args
+								else
+									me.log 'test returned'
+							when 'connected'
+								if not me.connected
+									me.connected = true
+									me.log("Connection to volarvideo object made")
+									if me._queue.length > 0	#send messages waiting to go
+										for i in me._queue
+											me.send.apply(me, i)
+						if me.events[data.type]
+							remove = []
+							for i, f in me.events[data.type]
+								if me.events[data.type][f].life isnt 0
+									i['function'].apply(undefined, [data])
+								if me.events[data.type][f].life > 0
+									me.events[data.type][f].life--
+								if me.events[data.type][f].life is 0
+									remove.push(i['function'])
+							for i in remove
+								me.off data.type, i
+					return
+				@log 'sending initial message'
+				@iframe.contentWindow.postMessage(JSON.stringify({'type' : 'connect'}), @iframe.src, [@channel.port2])
+			catch e
+				@error e
+				return false
 			return true
 		else if window.postMessage
-			@iframe.contentWindow.postMessage(JSON.stringify({'type' : 'connect'}), @iframe.src)
-			window.addEventListener "message", ((e) ->
-							data = me.munchData e.data
-							me.log 'data recieved: ', data
-							if data.type
-								switch data.type 
-									when 'test'
-										if data.args
-											me.log 'test returned', data.args
-										else
-											me.log 'test returned'
-									when 'connected'
-										me.connected = true
-										me.log("Connection to volarvideo object made")
-										if me._queue.length > 0	#send messages waiting to go
-											for i in me._queue
-												me.send.apply(me, i)
-								if me.events[data.type]
-									remove = []
-									for i, f in me.events[data.type]
-										i['function'].apply(undefined, [data])
-										if me.events[data.type][f]['life'] > 0
-											me.events[data.type][f]['life']--
-										if me.events[data.type][f]['life'] is 0
-											remove.push(i['function'])
-									for i in remove
-										me.off data.type, i
-							return), false
+			try
+				@iframe.contentWindow.postMessage(JSON.stringify({'type' : 'connect'}), @iframe.src)
+				window.addEventListener "message", ((e) ->
+								data = me.munchData e.data
+								me.log 'data recieved: ', data
+								if data.type
+									switch data.type 
+										when 'test'
+											if data.args
+												me.log 'test returned', data.args
+											else
+												me.log 'test returned'
+										when 'connected'
+											me.connected = true
+											me.log("Connection to volarvideo object made")
+											if me._queue.length > 0	#send messages waiting to go
+												for i in me._queue
+													me.send.apply(me, i)
+									if me.events[data.type]
+										remove = []
+										for i, f in me.events[data.type]
+											i['function'].apply(undefined, [data])
+											if me.events[data.type][f].life > 0
+												me.events[data.type][f].life--
+											if me.events[data.type][f].life is 0
+												remove.push(i['function'])
+										for i in remove
+											me.off data.type, i
+								return), false
+			catch e
+				@error e
+				return false
+
+			return true
 		else
 			@error 'cannot connect to iframe channel - window.MessageChannel not supported'
 			return false
@@ -160,7 +191,11 @@ class @Volarvideo
 
 	send: (type, args = null) ->
 		if @connected
-			@iframe.contentWindow.postMessage @prepareData(type, args), @iframe.src
+			try
+				@iframe.contentWindow.postMessage @prepareData(type, args), @iframe.src
+			catch e
+				@error e
+				return false
 			return true
 		else
 			@_queue.push [type, args]

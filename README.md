@@ -36,14 +36,26 @@ var i = document.getElementById('frame'),
 	debugdiv = document.getElementById('debug-info')
 	debugprogress = document.getElementById('debug-progress'),
 	v = new Volarvideo;
-v.connect(i);
-v.on('onCurrentTimeChange', function(data) {
-  var percent;
-  debugdiv.innerHTML = "Current State: " + data.state + ", Total duration of video: " + data.duration + ", current position: " + data.position;
-  percent = (data.position / data.duration) * 100;
-  debugprogress.style.width = percent + '%';
+v.on('error', function(err){
+	try {
+		console.error("Error when attempting to connect to iframe:", err);
+	} catch(ex) {
+		//do something else if console.error fails
+	} 
+}
 });
-v.play();
+v.on('connected', function(){
+	//perhaps setup something on the page, or initiate other related things that require a connection
+	//....
+});
+v.on('onCurrentTimeChange', function(data) {
+	var percent;
+	debugdiv.innerHTML = "Current State: " + data.state + ", Total duration of video: " + data.duration + ", current position: " + data.position;
+	percent = (data.position / data.duration) * 100;
+	debugprogress.style.width = percent + '%';
+});
+v.connect(i);
+v.play();	//this will occur when the connection completes if the connection doesn't complete by the time this is run, as it is queued
 ```
 
 Once the `v.connect()` call has completed, the v.on('event name') callback(s) will be bound and executed as events occur.  Additionally, since postMessage can sometimes be delayed (usually by a few milliseconds), calls like `v.play()`, `v.pause()`, and `v.seek(pos)` are enqueued and called once the connection is established so that they aren't lost.  In the example above, the connection is established, a listener for 'onCurrentTimeChange' is bound, and the player is instructed to play immediately.  as it plays, a timeline will appear below the player (which is what the `<div>` elements below the `<iframe>` are for) with a progress indicated that updates while the player plays.
@@ -75,6 +87,8 @@ The following is a list of registered events in the Iframe bridge controller tha
 
 | Event Name                 | Occurs when...      |
 | -------------------------- |:------------------- |
+| `connected`                | Embed is successfully connected to the player api |
+| `error`                    | Player api throws an error when attempting to connect to player api.  Note that callbacks for this event recieve 1 argument, and that 1 argument *should always be a javascript error object*. |
 | `playerEventHover`         | User places their mouse over the player |
 | `playerEventHoverOut`      | User removes their mouse from over the player |
 | `onComplete`               | Video finishes playing |

@@ -1,5 +1,5 @@
 ###
-Volarvideo Embed controller v1.0.0
+Volarvideo Embed controller v1.1.0
 Copyright Volar Video, Inc.
 
 Documentation on how to use is found at
@@ -35,6 +35,20 @@ class @Volarvideo
 
 	one: (event_name, callback) ->
 		@on event_name, callback, 1
+
+	trigger: (event_name, data) ->
+		if @events[event_name]
+			remove = []
+			for i, f in @events[event_name]
+				i['function'].apply(undefined, [data])
+				if @events[event_name][f].life > 0
+					@events[event_name][f].life--
+				if @events[event_name][f].life is 0
+					remove.push(i['function'])
+			for i in remove
+				@off event_name, i
+		return
+
 	off: (event_name, callback = null) ->
 		if callback and @events[event_name]
 			new_list = []
@@ -127,21 +141,12 @@ class @Volarvideo
 									if me._queue.length > 0	#send messages waiting to go
 										for i in me._queue
 											me.send.apply(me, i)
-						if me.events[data.type]
-							remove = []
-							for i, f in me.events[data.type]
-								if me.events[data.type][f].life isnt 0
-									i['function'].apply(undefined, [data])
-								if me.events[data.type][f].life > 0
-									me.events[data.type][f].life--
-								if me.events[data.type][f].life is 0
-									remove.push(i['function'])
-							for i in remove
-								me.off data.type, i
+						me.trigger(data.type, data)
 					return
 				@log 'sending initial message'
 				@iframe.contentWindow.postMessage(JSON.stringify({'type' : 'connect'}), @iframe.src, [@channel.port2])
 			catch e
+				@trigger('error', e)
 				@error e
 				return false
 			return true
@@ -164,23 +169,16 @@ class @Volarvideo
 											if me._queue.length > 0	#send messages waiting to go
 												for i in me._queue
 													me.send.apply(me, i)
-									if me.events[data.type]
-										remove = []
-										for i, f in me.events[data.type]
-											i['function'].apply(undefined, [data])
-											if me.events[data.type][f].life > 0
-												me.events[data.type][f].life--
-											if me.events[data.type][f].life is 0
-												remove.push(i['function'])
-										for i in remove
-											me.off data.type, i
+									me.trigger(data.type, data)
 								return), false
 			catch e
+				@trigger('error', e)
 				@error e
 				return false
 
 			return true
 		else
+			@trigger('error', new Error('cannot connect to iframe channel - window.MessageChannel not supported'))
 			@error 'cannot connect to iframe channel - window.MessageChannel not supported'
 			return false
 	disconnect: ->

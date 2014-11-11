@@ -1,11 +1,11 @@
-
 /*
-Volarvideo Embed controller v1.0.0
+Volarvideo Embed controller v1.1.0
 Copyright Volar Video, Inc.
 
 Documentation on how to use is found at
 	https://github.com/volarvideo/player-api
- */
+*/
+
 
 (function() {
   var __slice = [].slice;
@@ -60,6 +60,28 @@ Documentation on how to use is found at
 
     Volarvideo.prototype.one = function(event_name, callback) {
       return this.on(event_name, callback, 1);
+    };
+
+    Volarvideo.prototype.trigger = function(event_name, data) {
+      var f, i, remove, _i, _j, _len, _len1, _ref;
+      if (this.events[event_name]) {
+        remove = [];
+        _ref = this.events[event_name];
+        for (f = _i = 0, _len = _ref.length; _i < _len; f = ++_i) {
+          i = _ref[f];
+          i['function'].apply(void 0, [data]);
+          if (this.events[event_name][f].life > 0) {
+            this.events[event_name][f].life--;
+          }
+          if (this.events[event_name][f].life === 0) {
+            remove.push(i['function']);
+          }
+        }
+        for (_j = 0, _len1 = remove.length; _j < _len1; _j++) {
+          i = remove[_j];
+          this.off(event_name, i);
+        }
+      }
     };
 
     Volarvideo.prototype.off = function(event_name, callback) {
@@ -162,7 +184,7 @@ Documentation on how to use is found at
         try {
           this.channel = new MessageChannel();
           this.channel.port1.onmessage = function(e) {
-            var data, f, i, remove, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+            var data, i, _i, _len, _ref;
             data = me.munchData(e.data);
             me.log('data recieved: ', data);
             if (data.type) {
@@ -187,26 +209,7 @@ Documentation on how to use is found at
                     }
                   }
               }
-              if (me.events[data.type]) {
-                remove = [];
-                _ref1 = me.events[data.type];
-                for (f = _j = 0, _len1 = _ref1.length; _j < _len1; f = ++_j) {
-                  i = _ref1[f];
-                  if (me.events[data.type][f].life !== 0) {
-                    i['function'].apply(void 0, [data]);
-                  }
-                  if (me.events[data.type][f].life > 0) {
-                    me.events[data.type][f].life--;
-                  }
-                  if (me.events[data.type][f].life === 0) {
-                    remove.push(i['function']);
-                  }
-                }
-                for (_k = 0, _len2 = remove.length; _k < _len2; _k++) {
-                  i = remove[_k];
-                  me.off(data.type, i);
-                }
-              }
+              me.trigger(data.type, data);
             }
           };
           this.log('sending initial message');
@@ -215,6 +218,7 @@ Documentation on how to use is found at
           }), this.iframe.src, [this.channel.port2]);
         } catch (_error) {
           e = _error;
+          this.trigger('error', e);
           this.error(e);
           return false;
         }
@@ -225,7 +229,7 @@ Documentation on how to use is found at
             'type': 'connect'
           }), this.iframe.src);
           window.addEventListener("message", (function(e) {
-            var data, f, i, remove, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
+            var data, i, _i, _len, _ref;
             data = me.munchData(e.data);
             me.log('data recieved: ', data);
             if (data.type) {
@@ -248,33 +252,18 @@ Documentation on how to use is found at
                     }
                   }
               }
-              if (me.events[data.type]) {
-                remove = [];
-                _ref1 = me.events[data.type];
-                for (f = _j = 0, _len1 = _ref1.length; _j < _len1; f = ++_j) {
-                  i = _ref1[f];
-                  i['function'].apply(void 0, [data]);
-                  if (me.events[data.type][f].life > 0) {
-                    me.events[data.type][f].life--;
-                  }
-                  if (me.events[data.type][f].life === 0) {
-                    remove.push(i['function']);
-                  }
-                }
-                for (_k = 0, _len2 = remove.length; _k < _len2; _k++) {
-                  i = remove[_k];
-                  me.off(data.type, i);
-                }
-              }
+              me.trigger(data.type, data);
             }
           }), false);
         } catch (_error) {
           e = _error;
+          this.trigger('error', e);
           this.error(e);
           return false;
         }
         return true;
       } else {
+        this.trigger('error', new Error('cannot connect to iframe channel - window.MessageChannel not supported'));
         this.error('cannot connect to iframe channel - window.MessageChannel not supported');
         return false;
       }
@@ -357,10 +346,10 @@ Documentation on how to use is found at
 
   })();
 
-
   /*
   json2.js, from https://github.com/douglascrockford/JSON-js
-   */
+  */
+
 
   "object"!==typeof this.JSON&&(this.JSON={});
 (function(){function l(a){return 10>a?"0"+a:a}function q(a){r.lastIndex=0;return r.test(a)?'"'+a.replace(r,function(a){var c=t[a];return"string"===typeof c?c:"\\u"+("0000"+a.charCodeAt(0).toString(16)).slice(-4)})+'"':'"'+a+'"'}function n(a,k){var c,d,h,p,g=e,f,b=k[a];b&&("object"===typeof b&&"function"===typeof b.toJSON)&&(b=b.toJSON(a));"function"===typeof j&&(b=j.call(k,a,b));switch(typeof b){case "string":return q(b);case "number":return isFinite(b)?String(b):"null";case "boolean":case "null":return String(b);

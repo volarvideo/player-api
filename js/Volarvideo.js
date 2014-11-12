@@ -1,5 +1,5 @@
 /*
-Volarvideo Embed controller v1.1.0
+Volarvideo Embed controller v1.1.1
 Copyright Volar Video, Inc.
 
 Documentation on how to use is found at
@@ -46,7 +46,7 @@ Documentation on how to use is found at
       if (life == null) {
         life = -1;
       }
-      if (event_name === 'connect' && this.connected) {
+      if (event_name === 'connected' && this.connected) {
         callback();
       }
       if (!this.events[event_name]) {

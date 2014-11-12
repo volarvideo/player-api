@@ -1,5 +1,5 @@
 ###
-Volarvideo Embed controller v1.1.0
+Volarvideo Embed controller v1.1.1
 Copyright Volar Video, Inc.
 
 Documentation on how to use is found at
@@ -23,7 +23,7 @@ class @Volarvideo
 			@connect iframe
 
 	on: (event_name, callback, life = -1) ->
-		if event_name is 'connect' and @connected
+		if event_name is 'connected' and @connected
 			callback()
 		#add event to event list
 		if not @events[event_name]

@@ -1,5 +1,5 @@
 /*
-Volarvideo Embed controller v1.1.1
+Volarvideo Embed controller v1.1.2
 Copyright Volar Video, Inc.
 
 Documentation on how to use is found at
@@ -142,6 +142,15 @@ Documentation on how to use is found at
       return this.send('statsForNerds');
     };
 
+    Volarvideo.prototype.socialIconsVisible = function(callback) {
+      this.one('socialIconsVisible', callback);
+      return this.send('socialIconsVisible');
+    };
+
+    Volarvideo.prototype.setEmbedURL = function(url) {
+      return this.send('setEmbedURL', [url]);
+    };
+
     Volarvideo.prototype.playerVersion = function(callback) {
       this.one('playerVersion', callback);
       return this.send('playerVersion');
@@ -206,6 +215,7 @@ Documentation on how to use is found at
                         i = _ref[_i];
                         me.send.apply(me, i);
                       }
+                      me._queue = [];
                     }
                   }
               }
@@ -242,13 +252,16 @@ Documentation on how to use is found at
                   }
                   break;
                 case 'connected':
-                  me.connected = true;
-                  me.log("Connection to volarvideo object made");
-                  if (me._queue.length > 0) {
-                    _ref = me._queue;
-                    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                      i = _ref[_i];
-                      me.send.apply(me, i);
+                  if (!me.connected) {
+                    me.connected = true;
+                    me.log("Connection to volarvideo object made");
+                    if (me._queue.length > 0) {
+                      _ref = me._queue;
+                      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                        i = _ref[_i];
+                        me.send.apply(me, i);
+                      }
+                      me._queue = [];
                     }
                   }
               }

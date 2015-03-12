@@ -1,5 +1,5 @@
 ###
-Volarvideo Embed controller v1.1.1
+Volarvideo Embed controller v1.1.2
 Copyright Volar Video, Inc.
 
 Documentation on how to use is found at
@@ -90,6 +90,13 @@ class @Volarvideo
 		@one 'statsForNerds', callback
 		@send 'statsForNerds'
 
+	socialIconsVisible: (callback) ->
+		@one 'socialIconsVisible', callback
+		@send 'socialIconsVisible'
+
+	setEmbedURL: (url) ->
+		@send 'setEmbedURL', [url]
+
 	playerVersion: (callback) ->
 		@one 'playerVersion', callback
 		@send 'playerVersion'
@@ -141,6 +148,7 @@ class @Volarvideo
 									if me._queue.length > 0	#send messages waiting to go
 										for i in me._queue
 											me.send.apply(me, i)
+										me._queue = []
 						me.trigger(data.type, data)
 					return
 				@log 'sending initial message'
@@ -164,11 +172,13 @@ class @Volarvideo
 											else
 												me.log 'test returned'
 										when 'connected'
-											me.connected = true
-											me.log("Connection to volarvideo object made")
-											if me._queue.length > 0	#send messages waiting to go
-												for i in me._queue
-													me.send.apply(me, i)
+											if not me.connected
+												me.connected = true
+												me.log("Connection to volarvideo object made")
+												if me._queue.length > 0	#send messages waiting to go
+													for i in me._queue
+														me.send.apply(me, i)
+													me._queue = []
 									me.trigger(data.type, data)
 								return), false
 			catch e
